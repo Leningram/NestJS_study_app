@@ -41,7 +41,10 @@ export class TasksService {
     if (!task) {
       throw new NotFoundException('Task not found');
     }
-    Object.assign(task, data);
+    const patch = Object.fromEntries(
+      Object.entries(data).filter(([, value]) => value !== undefined),
+    );
+    Object.assign(task, patch);
     return task;
   }
 
