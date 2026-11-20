@@ -20,28 +20,31 @@ export class TasksController {
   constructor(private readonly tasksService: TasksService) {}
 
   @Get()
-  getTasks(): Task[] {
+  async getTasks(): Promise<Task[]> {
     return this.tasksService.getTasks();
   }
 
   @Post()
-  createTask(@Body() dto: CreateTaskDto): Task {
+  async createTask(@Body() dto: CreateTaskDto): Promise<Task> {
     return this.tasksService.createTask(dto.title);
   }
 
   @Get(':id')
-  getTaskById(@Param('id', ParseIntPipe) id: number) {
+  async getTaskById(@Param('id', ParseIntPipe) id: number): Promise<Task> {
     return this.tasksService.getTaskById(id);
   }
 
   @Patch(':id')
-  updateTask(@Param('id', ParseIntPipe) id: number, @Body() updateTaskDto: UpdateTaskDto): Task {
+  async updateTask(
+    @Param('id', ParseIntPipe) id: number,
+    @Body() updateTaskDto: UpdateTaskDto,
+  ): Promise<Task> {
     return this.tasksService.updateTask(id, updateTaskDto);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.NO_CONTENT)
-  deleteTask(@Param('id', ParseIntPipe) id: number) {
-    this.tasksService.deleteTask(id);
+  async deleteTask(@Param('id', ParseIntPipe) id: number): Promise<void> {
+    return this.tasksService.deleteTask(id);
   }
 }

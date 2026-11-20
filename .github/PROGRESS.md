@@ -11,7 +11,7 @@
 - Архитектура backend-приложения: route → controller → service → DB, плюс глобальный error middleware.
 - NestJS: назначение корневого `AppModule`, роли `controllers` и `providers`, запуск через `NestFactory.create` и функция `bootstrap`.
 - Базовый путь запроса в NestJS: controller вызывает service; DI-контейнер предоставляет service через конструктор.
-- Созданы `TasksModule`, `TasksController` и `TasksService`; добавлен маршрут `GET /tasks` с временным хранением данных в памяти.
+- Созданы `TasksModule`, `TasksController` и `TasksService`; CRUD-маршруты задач переведены с временного хранения в памяти на PostgreSQL.
 - Интерфейс `Task` вынесен в `src/tasks/interfaces/task.interface.ts`; для него используются type-only imports.
 - Создание задач через `POST /tasks`: DTO-класс с правилами `class-validator`, глобальный `ValidationPipe`, отклонение невалидных и лишних полей.
 - Получение задачи через `GET /tasks/:id`: `@Param`, `ParseIntPipe` и `NotFoundException` для ответа `404`, если задача не найдена.
@@ -22,17 +22,20 @@
 - E2E-проверка глобального `ValidationPipe`: невалидный `POST`/`PATCH`, лишние поля и нечисловой ID возвращают `400`.
 - Частичное обновление валидируется по полям DTO; при обновлении применяются только переданные значения, `null` отклоняется для non-nullable полей.
 - Базовый NestJS CRUD с DTO, dependency injection, исключениями и e2e-тестами пройден; мини-проверка по потоку `PATCH` успешно выполнена.
+- Подключение `DatabaseService` к `TasksService`; чтение списка и одной задачи через `SELECT`, создание через параметризованный `INSERT ... RETURNING`.
+- Обновление через параметризованный `UPDATE ... COALESCE ... RETURNING`: отсутствующие поля PATCH сохраняют старые значения, а отсутствие строки определяется по `result.rows[0]`.
+- Удаление через `DELETE ... RETURNING`; `NotFoundException` при отсутствующем ID. В контроллере async-обработчик возвращает Promise сервиса, чтобы Nest дождался завершения запроса.
+- Разобраны параметризованные запросы PostgreSQL (`$1`, `$2`), форма результата `pg` (`result.rows`) и различие между ошибкой запроса и пустым результатом.
 
 ## Вызывает трудности / повторить
-- Перевести TasksService с массива на параметризованные PostgreSQL-запросы.
 - Настроить автоматический запуск и учёт применённых SQL-миграций.
 
 ## Последняя сессия
-- Дата: 2026-11-15
-- Что делали: завершили этап NestJS и перешли к PostgreSQL. Установили локальный PostgreSQL 18, создали роль `tasks_app` и БД `tasks_api`; SQL-файл `database/migrations/001_create_tasks.sql` применён вручную через `psql`. В Nest созданы `DatabaseModule` и `DatabaseService`; подключены `pg.Pool` и `@nestjs/config`, добавлены lifecycle hooks для проверки соединения через `SELECT 1` и закрытия пула, а также метод `query(sql, values)`.
-- С чего продолжить: использовать `DatabaseService` в `TasksService` и заменить хранение задач в памяти на параметризованные запросы; затем добавить автоматический запуск и учёт миграций.
+- Дата: 2026-11-20
+- Что делали: продолжили этап PostgreSQL. Перевели полный CRUD в `TasksService` с массива на параметризованные PostgreSQL-запросы: `SELECT`, `INSERT`, `UPDATE` и `DELETE`; для записи результатов используются `RETURNING` и `result.rows`. Сохранили `404` при отсутствии задачи и асинхронно возвращаем Promise удаления из контроллера. Сборка NestJS проходила после реализации CRUD-методов; чтение списка проверено пользователем через Postman.
+- С чего продолжить: настроить автоматический запуск SQL-миграций и учёт уже применённых миграций; затем проверить CRUD-маршруты через Postman.
 
 ## Контекст проекта
-- Стек: Node.js 22, NestJS 11, TypeScript, PostgreSQL 18; локальная БД `tasks_api`, роль приложения `tasks_app`; перенос CRUD с памяти на PostgreSQL начат.
+- Стек: Node.js 22, NestJS 11, TypeScript, PostgreSQL 18; локальная БД `tasks_api`, роль приложения `tasks_app`; CRUD задач работает через PostgreSQL, автоматический запуск и учёт миграций ещё предстоит настроить.
 - Цель: REST API для управления задачами и практического изучения NestJS.
 - Курс и модуль: учебный план Node.js → Express → NestJS → PostgreSQL → Auth → Redis → Docker/Linux → production → Go → архитектура.
