@@ -2,6 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { TasksService } from './tasks.service';
 import { DatabaseService } from '../database/database.service';
 
+jest.mock('../database/database.service', () => ({
+  DatabaseService: class DatabaseService {},
+}));
+
 describe('TasksService', () => {
   let service: TasksService;
   const databaseMock = { query: jest.fn() };
