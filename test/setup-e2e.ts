@@ -1,0 +1,1 @@
+process.env.PGDATABASE = 'tasks_api_test';

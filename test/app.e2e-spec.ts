@@ -3,6 +3,7 @@ import { INestApplication, ValidationPipe } from '@nestjs/common';
 import request from 'supertest';
 import { App } from 'supertest/types';
 import { AppModule } from './../src/app.module';
+import { DatabaseService } from '../src/database/database.service';
 
 describe('API (e2e)', () => {
   let app: INestApplication<App>;
@@ -22,6 +23,11 @@ describe('API (e2e)', () => {
       }),
     );
     await app.init();
+    const database = app.get(DatabaseService);
+    await database.query('TRUNCATE TABLE tasks RESTART IDENTITY');
+    await database.query(
+      "INSERT INTO tasks (title, completed) VALUES('Первая задача', true), ('Вторая задача', false)",
+    );
   });
 
   it('GET /tasks returns 200 and tasks', async () => {

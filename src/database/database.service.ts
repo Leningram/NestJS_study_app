@@ -17,11 +17,15 @@ export class DatabaseService implements OnModuleDestroy, OnModuleInit {
 
   async onModuleInit(): Promise<void> {
     await this.query('SELECT 1');
+    await this.query(
+      'CREATE TABLE IF NOT EXISTS schema_migrations (version text PRIMARY KEY)',
+    );
   }
 
   async onModuleDestroy() {
     await this.pool.end();
   }
+
   query(sql: string, values: unknown[] = []) {
     return this.pool.query(sql, values);
   }
